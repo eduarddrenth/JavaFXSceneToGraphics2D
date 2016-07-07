@@ -21,6 +21,7 @@ package com.vectorprint.javafx.graphics;
  */
 //~--- non-JDK imports --------------------------------------------------------
 import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.Semaphore;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -29,7 +30,7 @@ import javax.swing.JFrame;
 /**
  * Helper that can plot a JavaFX Scenes (with known width and height) on a Graphics2D. A JFrame with a JFXPanel are used
  * to accomplish this, you will see the JFrame flashing by. Note that scene is drawn as a bitmap, not as vectors, so for
- * sharp images you may want to scale up before drawing. If you use this functionality outside a JavaFX appliaction you
+ * sharp images you may want to scale up before drawing. If you use this functionality outside a JavaFX application you
  * may get a "Toolkit not initialized" exception, instantiating a JFXPanel before creating nodes and scenes solves this.
  *
  * @author Eduard Drenth at VectorPrint.nl
@@ -58,9 +59,14 @@ public class JavaFXToGraphicsHelper {
 
       frame.setVisible(false);
 
-      // pass the Graphics2D and drawing area to JFreeChart
       graphics2D.dispose();    // always dispose this
 
+   }
+
+   public static BufferedImage transform(Scene scene, int bufferedImageType) throws InterruptedException {
+      BufferedImage img = new BufferedImage(Math.round((float) scene.getWidth()), Math.round((float) scene.getHeight()), bufferedImageType);
+      draw(img.createGraphics(), scene);
+      return img;
    }
 
 }

@@ -15,7 +15,6 @@
  */
 package com.vectorprint.javafx.graphics;
 
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javafx.embed.swing.JFXPanel;
@@ -74,9 +73,7 @@ public class JavaFXToGraphicsHelperTest {
 
       ((Group) scene.getRoot()).getChildren().add(lineChart);
 
-      BufferedImage img = new BufferedImage(1280, 960, BufferedImage.TYPE_INT_ARGB);
-      Graphics2D createGraphics = img.createGraphics();
-      JavaFXToGraphicsHelper.draw(createGraphics, scene);
+      BufferedImage img = JavaFXToGraphicsHelper.transform(scene, BufferedImage.TYPE_INT_ARGB);
 
       File file = new File("target/scene.png");
       Assert.assertTrue("deleting " + file.getPath() + " failed", !file.exists() || file.delete());
