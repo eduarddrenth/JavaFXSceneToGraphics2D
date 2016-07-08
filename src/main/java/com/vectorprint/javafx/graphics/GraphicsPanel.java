@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.vectorprint.javafx.graphics;
 
 import java.awt.Graphics;
@@ -10,6 +5,8 @@ import java.util.concurrent.Semaphore;
 import javafx.embed.swing.JFXPanel;
 
 /**
+ * Subclass of JFXPanel that will draw on a Graphics object you provide. After drawing {@link Semaphore#release() }
+ * will be called to let you know drawing has finished.
  *
  * @author Eduard Drenth at VectorPrint.nl
  */

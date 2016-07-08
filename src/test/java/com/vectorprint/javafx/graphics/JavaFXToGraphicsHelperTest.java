@@ -73,7 +73,7 @@ public class JavaFXToGraphicsHelperTest {
 
       ((Group) scene.getRoot()).getChildren().add(lineChart);
 
-      BufferedImage img = JavaFXToGraphicsHelper.transform(scene, BufferedImage.TYPE_INT_ARGB);
+      BufferedImage img = new JavaFXSceneToGraphics2D().transform(scene, BufferedImage.TYPE_INT_ARGB);
 
       File file = new File("target/scene.png");
       Assert.assertTrue("deleting " + file.getPath() + " failed", !file.exists() || file.delete());
@@ -82,6 +82,51 @@ public class JavaFXToGraphicsHelperTest {
 
       Assert.assertTrue("writing scene to " + file.getPath() + " failed", file.length() > 10);
 
+   }
+
+   @Test
+   public void testNoWidthOrHeight() throws Exception {
+      Scene scene = new Scene(new Group());
+
+      new JFXPanel(); // needed because of "Toolkit not initialized"
+
+      //defining the axes
+      final NumberAxis xAxis = new NumberAxis();
+      final NumberAxis yAxis = new NumberAxis();
+      xAxis.setLabel("Number of Month");
+      //creating the chart
+      final LineChart<Number, Number> lineChart
+          = new LineChart<Number, Number>(xAxis, yAxis);
+
+      lineChart.setTitle("Stock Monitoring, 2010");
+      //defining a series
+      XYChart.Series series = new XYChart.Series();
+      series.setName("My portfolio");
+      //populating the series with data
+      series.getData().add(new XYChart.Data(1, 23));
+      series.getData().add(new XYChart.Data(2, 14));
+      series.getData().add(new XYChart.Data(3, 15));
+      series.getData().add(new XYChart.Data(4, 24));
+      series.getData().add(new XYChart.Data(5, 34));
+      series.getData().add(new XYChart.Data(6, 36));
+      series.getData().add(new XYChart.Data(7, 22));
+      series.getData().add(new XYChart.Data(8, 45));
+      series.getData().add(new XYChart.Data(9, 43));
+      series.getData().add(new XYChart.Data(10, 17));
+      series.getData().add(new XYChart.Data(11, 29));
+      series.getData().add(new XYChart.Data(12, 25));
+
+      lineChart.getData().add(series);
+      lineChart.setPrefSize(1200, 900);
+
+      ((Group) scene.getRoot()).getChildren().add(lineChart);
+
+      BufferedImage img = new BufferedImage(1280, 960, BufferedImage.TYPE_INT_ARGB);
+      try {
+         new JavaFXSceneToGraphics2D().draw(img.createGraphics(), scene);
+         Assert.fail("illegal width or height of scene");
+      } catch (IllegalArgumentException ex) {
+      }
    }
 
 }

@@ -35,10 +35,14 @@ import javax.swing.JFrame;
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class JavaFXToGraphicsHelper {
+public class JavaFXSceneToGraphics2D {
 
-   public static void draw(Graphics2D graphics2D, Scene scene) throws
+   public void draw(Graphics2D graphics2D, Scene scene) throws
        InterruptedException {
+
+      if (scene.getWidth() <= 0 || scene.getHeight() <= 0) {
+         throw new IllegalArgumentException(String.format("Illegal Scene width %s or height %s", scene.getWidth(), scene.getHeight()));
+      }
 
       float w = (float) scene.getWidth();
       float h = (float) scene.getHeight();
@@ -63,7 +67,7 @@ public class JavaFXToGraphicsHelper {
 
    }
 
-   public static BufferedImage transform(Scene scene, int bufferedImageType) throws InterruptedException {
+   public BufferedImage transform(Scene scene, int bufferedImageType) throws InterruptedException {
       BufferedImage img = new BufferedImage(Math.round((float) scene.getWidth()), Math.round((float) scene.getHeight()), bufferedImageType);
       draw(img.createGraphics(), scene);
       return img;
