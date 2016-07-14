@@ -22,52 +22,45 @@ package com.vectorprint.javafx.graphics;
 //~--- non-JDK imports --------------------------------------------------------
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.util.concurrent.Semaphore;
-import javafx.embed.swing.JFXPanel;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.RunnableFuture;
+import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
-import javax.swing.JFrame;
 
 /**
- * Helper that can plot a JavaFX Scenes (with known width and height) on a Graphics2D. A JFrame with a JFXPanel are used
- * to accomplish this, you will see the JFrame flashing by. Note that scene is drawn as a bitmap, not as vectors, so for
- * sharp images you may want to scale up before drawing. If you use this functionality outside a JavaFX application you
- * may get a "Toolkit not initialized" exception, instantiating a JFXPanel before creating nodes and scenes solves this.
+ * Helper that can plot a JavaFX Scenes on a Graphics2D, uses {@link Scene#snapshot(javafx.scene.image.WritableImage) }.
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
 public class JavaFXSceneToGraphics2D {
 
-   public void draw(Graphics2D graphics2D, Scene scene) throws
-       InterruptedException {
+   public void draw(Graphics2D graphics2D, Scene scene) throws InterruptedException, ExecutionException {
 
-      if (scene.getWidth() <= 0 || scene.getHeight() <= 0) {
-         throw new IllegalArgumentException(String.format("Illegal Scene width %s or height %s", scene.getWidth(), scene.getHeight()));
-      }
+      Callable<Boolean> c = new Callable<Boolean>() {
+         @Override
+         public Boolean call() throws Exception {
+            BufferedImage fromFXImage = SwingFXUtils.fromFXImage(scene.snapshot(null), null);
 
-      float w = (float) scene.getWidth();
-      float h = (float) scene.getHeight();
+            graphics2D.drawImage(fromFXImage, null, 0, 0);
 
-      final Semaphore rendered = new Semaphore(1);
-      rendered.acquire();
+            graphics2D.dispose();
 
-      JFXPanel panel = new GraphicsPanel(graphics2D, rendered);
-      panel.setScene(scene);
+            return true;
+         }
+      };
 
-      JFrame frame = new JFrame("closes when rendering is complete");
-      frame.setSize(Math.round(w), Math.round(h));
-      frame.setEnabled(false);
-      frame.add(panel);
-      frame.setVisible(true);
+      RunnableFuture<Boolean> rf = new FutureTask<Boolean>(c);
 
-      rendered.acquire();
+      Platform.runLater(rf);
 
-      frame.setVisible(false);
-
-      graphics2D.dispose();    // always dispose this
+      rf.get();
 
    }
 
-   public BufferedImage transform(Scene scene, int bufferedImageType) throws InterruptedException {
+   public BufferedImage transform(Scene scene, int bufferedImageType) throws InterruptedException, ExecutionException {
       BufferedImage img = new BufferedImage(Math.round((float) scene.getWidth()), Math.round((float) scene.getHeight()), bufferedImageType);
       draw(img.createGraphics(), scene);
       return img;
