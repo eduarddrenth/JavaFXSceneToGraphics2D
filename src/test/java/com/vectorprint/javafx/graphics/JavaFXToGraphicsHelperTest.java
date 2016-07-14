@@ -38,7 +38,7 @@ public class JavaFXToGraphicsHelperTest {
 
    @Test
    public void testDraw() throws Exception {
-      Scene scene = new Scene(new Group(), 1280, 960);
+      Scene scene = new Scene(new Group(), 1280, 1024);
 
       new JFXPanel(); // needed because of "Toolkit not initialized"
 
@@ -82,6 +82,14 @@ public class JavaFXToGraphicsHelperTest {
 
       Assert.assertTrue("writing scene to " + file.getPath() + " failed", file.length() > 10);
 
+      img = new JavaFXSceneToGraphics2D().transform(lineChart, BufferedImage.TYPE_INT_ARGB);
+
+      file = new File("target/node.png");
+      Assert.assertTrue("deleting " + file.getPath() + " failed", !file.exists() || file.delete());
+
+      ImageIO.write(img, "png", file);
+
+      Assert.assertTrue("writing scene to " + file.getPath() + " failed", file.length() > 10);
    }
 
 }
