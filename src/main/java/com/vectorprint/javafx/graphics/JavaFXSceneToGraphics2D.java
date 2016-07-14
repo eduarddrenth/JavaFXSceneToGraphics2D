@@ -27,32 +27,25 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
 import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 
 /**
- * Helper that can plot a JavaFX Scenes on a Graphics2D, uses {@link Scene#snapshot(javafx.scene.image.WritableImage) }.
+ * Helper that can plot a JavaFX Scene or Node on a Graphics2D, uses {@link Scene#snapshot(javafx.scene.image.WritableImage)
+ * }
+ * or {@link Node#snapshot(javafx.scene.SnapshotParameters, javafx.scene.image.WritableImage) }. Before creating scenes
+ * and nodes you may need to instantiate a {@link JFXPanel} if you run into "Toolkit not initialized", or apply some
+ * other solution to solve this issue.
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
 public class JavaFXSceneToGraphics2D {
 
-   public void draw(Graphics2D graphics2D, Scene scene) throws InterruptedException, ExecutionException {
+   public void draw(Graphics2D graphics2D, Object sceneOrNode) throws InterruptedException, ExecutionException {
 
-      Callable<Boolean> c = new Callable<Boolean>() {
-         @Override
-         public Boolean call() throws Exception {
-            BufferedImage fromFXImage = SwingFXUtils.fromFXImage(scene.snapshot(null), null);
-
-            graphics2D.drawImage(fromFXImage, null, 0, 0);
-
-            graphics2D.dispose();
-
-            return true;
-         }
-      };
-
-      RunnableFuture<Boolean> rf = new FutureTask<Boolean>(c);
+      RunnableFuture<Void> rf = new FutureTask<Void>(getFor(graphics2D, sceneOrNode));
 
       Platform.runLater(rf);
 
@@ -60,10 +53,56 @@ public class JavaFXSceneToGraphics2D {
 
    }
 
+   private Callable<Void> getFor(Graphics2D graphics2D, Object sceneOrNode) {
+      if (sceneOrNode instanceof Scene || sceneOrNode instanceof Node) {
+         return new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+               BufferedImage fromFXImage = SwingFXUtils.fromFXImage(
+                   sceneOrNode instanceof Scene ? ((Scene) sceneOrNode).snapshot(null) : ((Node) sceneOrNode).snapshot(null, null), null);
+
+               graphics2D.drawImage(fromFXImage, null, 0, 0);
+
+               graphics2D.dispose();
+
+               return null;
+            }
+         };
+      } else {
+         throw new IllegalArgumentException(String.format("%s is not a Scene or Node", sceneOrNode));
+      }
+   }
+
+   /**
+    * creates an image of a scene using {@link Scene#getWidth() } and {@link Scene#getHeight() }.
+    *
+    * @param scene
+    * @param bufferedImageType
+    * @return
+    * @throws InterruptedException
+    * @throws ExecutionException
+    */
    public BufferedImage transform(Scene scene, int bufferedImageType) throws InterruptedException, ExecutionException {
       BufferedImage img = new BufferedImage(Math.round((float) scene.getWidth()), Math.round((float) scene.getHeight()), bufferedImageType);
       draw(img.createGraphics(), scene);
       return img;
    }
 
+   /**
+    * creates an image of a scene using {@link Node#getBoundsInLocal() }.
+    *
+    * @param node
+    * @param bufferedImageType
+    * @return
+    * @throws InterruptedException
+    * @throws ExecutionException
+    */
+   public BufferedImage transform(Node node, int bufferedImageType) throws InterruptedException, ExecutionException {
+      BufferedImage img = new BufferedImage(
+          Math.round((float) node.boundsInLocalProperty().get().getWidth()),
+          Math.round((float) node.boundsInLocalProperty().get().getHeight()),
+          bufferedImageType);
+      draw(img.createGraphics(), node);
+      return img;
+   }
 }
