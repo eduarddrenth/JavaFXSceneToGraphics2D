@@ -79,13 +79,9 @@ public class JavaFXSceneToGraphics2D {
     * @param scene
     * @param bufferedImageType
     * @return
-    * @throws InterruptedException
-    * @throws ExecutionException
     */
-   public BufferedImage transform(Scene scene, int bufferedImageType) throws InterruptedException, ExecutionException {
-      BufferedImage img = new BufferedImage(Math.round((float) scene.getWidth()), Math.round((float) scene.getHeight()), bufferedImageType);
-      draw(img.createGraphics(), scene);
-      return img;
+   public static BufferedImage fromScene(Scene scene, int bufferedImageType) {
+      return new BufferedImage(Math.round((float) scene.getWidth()), Math.round((float) scene.getHeight()), bufferedImageType);
    }
 
    /**
@@ -94,15 +90,19 @@ public class JavaFXSceneToGraphics2D {
     * @param node
     * @param bufferedImageType
     * @return
-    * @throws InterruptedException
-    * @throws ExecutionException
     */
-   public BufferedImage transform(Node node, int bufferedImageType) throws InterruptedException, ExecutionException {
-      BufferedImage img = new BufferedImage(
+   public static BufferedImage fromNode(Node node, int bufferedImageType) {
+      return new BufferedImage(
           Math.round((float) node.boundsInLocalProperty().get().getWidth()),
           Math.round((float) node.boundsInLocalProperty().get().getHeight()),
           bufferedImageType);
+   }
+
+   public void transform(Scene scene, BufferedImage img) throws InterruptedException, ExecutionException {
+      draw(img.createGraphics(), scene);
+   }
+
+   public void transform(Node node, BufferedImage img) throws InterruptedException, ExecutionException {
       draw(img.createGraphics(), node);
-      return img;
    }
 }
