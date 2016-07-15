@@ -22,6 +22,7 @@ package com.vectorprint.javafx.graphics;
 //~--- non-JDK imports --------------------------------------------------------
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -44,8 +45,12 @@ import javafx.scene.Scene;
 public class JavaFXSceneToGraphics2D {
 
    public void draw(Graphics2D graphics2D, Object sceneOrNode) throws InterruptedException, ExecutionException {
+      draw(graphics2D, sceneOrNode, null);
+   }
 
-      RunnableFuture<Void> rf = new FutureTask<Void>(getFor(graphics2D, sceneOrNode));
+   public void draw(Graphics2D graphics2D, Object sceneOrNode, BufferedImageOp options) throws InterruptedException, ExecutionException {
+
+      RunnableFuture<Void> rf = new FutureTask<Void>(getFor(graphics2D, sceneOrNode, options));
 
       Platform.runLater(rf);
 
@@ -53,7 +58,7 @@ public class JavaFXSceneToGraphics2D {
 
    }
 
-   private Callable<Void> getFor(Graphics2D graphics2D, Object sceneOrNode) {
+   private Callable<Void> getFor(Graphics2D graphics2D, Object sceneOrNode, BufferedImageOp options) {
       if (sceneOrNode instanceof Scene || sceneOrNode instanceof Node) {
          return new Callable<Void>() {
             @Override
