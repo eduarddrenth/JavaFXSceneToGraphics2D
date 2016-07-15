@@ -42,7 +42,7 @@ import javafx.scene.Scene;
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class JavaFXSceneToGraphics2D {
+public class JavaFXToGraphics2D {
 
    public void draw(Graphics2D graphics2D, Object sceneOrNode) throws InterruptedException, ExecutionException {
       draw(graphics2D, sceneOrNode, null);
