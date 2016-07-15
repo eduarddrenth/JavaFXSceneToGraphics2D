@@ -74,7 +74,7 @@ public class JavaFXToGraphicsHelperTest {
       ((Group) scene.getRoot()).getChildren().add(lineChart);
 
       BufferedImage img = JavaFXToGraphics2D.fromScene(scene, BufferedImage.TYPE_INT_ARGB);
-      new JavaFXToGraphics2D().transform(scene, img);
+      new JavaFXToGraphics2D().draw(scene, img);
 
       File file = new File("target/scene.png");
       Assert.assertTrue("deleting " + file.getPath() + " failed", !file.exists() || file.delete());
@@ -84,7 +84,7 @@ public class JavaFXToGraphicsHelperTest {
       Assert.assertTrue("writing scene to " + file.getPath() + " failed", file.length() > 10);
 
       img = JavaFXToGraphics2D.fromNode(lineChart, BufferedImage.TYPE_INT_ARGB);
-      new JavaFXToGraphics2D().transform(lineChart, img);
+      new JavaFXToGraphics2D().draw(lineChart, img);
 
       file = new File("target/node.png");
       Assert.assertTrue("deleting " + file.getPath() + " failed", !file.exists() || file.delete());

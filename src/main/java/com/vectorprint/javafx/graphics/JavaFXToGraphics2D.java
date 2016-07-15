@@ -32,25 +32,71 @@ import javafx.embed.swing.JFXPanel;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 
 /**
  * Helper that can plot a JavaFX Scene or Node on a Graphics2D, uses {@link Scene#snapshot(javafx.scene.image.WritableImage)
  * }
  * or {@link Node#snapshot(javafx.scene.SnapshotParameters, javafx.scene.image.WritableImage) }. Before creating scenes
  * and nodes you may need to instantiate a {@link JFXPanel} if you run into "Toolkit not initialized", or apply some
- * other solution to solve this issue.
+ * other solution to solve this issue. This class is ThreadSafe.
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
 public class JavaFXToGraphics2D {
 
+   /**
+    * Draws a scene or a node on the provided graphics2D.
+    *
+    * @param graphics2D
+    * @param sceneOrNode
+    * @throws InterruptedException
+    * @throws ExecutionException
+    */
    public void draw(Graphics2D graphics2D, Object sceneOrNode) throws InterruptedException, ExecutionException {
-      draw(graphics2D, sceneOrNode, null);
+      doDraw(graphics2D, sceneOrNode, null, null);
    }
 
-   public void draw(Graphics2D graphics2D, Object sceneOrNode, BufferedImageOp options) throws InterruptedException, ExecutionException {
+   /**
+    * Draws a scene on the provided graphics2D using BufferedImageOp when provided.
+    *
+    * @param graphics2D
+    * @param scene
+    * @param options optional options
+    * @throws InterruptedException
+    * @throws ExecutionException
+    */
+   public void draw(Graphics2D graphics2D, Scene scene, BufferedImageOp options) throws InterruptedException, ExecutionException {
+      doDraw(graphics2D, scene, null, options);
+   }
 
-      RunnableFuture<Void> rf = new FutureTask<Void>(getFor(graphics2D, sceneOrNode, options));
+   /**
+    * Draws a node on the provided graphics2D using BufferedImageOp and/or SnapshotParameters when provided.
+    *
+    * @param graphics2D
+    * @param node
+    * @param snapshotParameters optional parameters
+    * @param options optional options
+    * @throws InterruptedException
+    * @throws ExecutionException
+    */
+   public void draw(Graphics2D graphics2D, Node node, SnapshotParameters snapshotParameters, BufferedImageOp options) throws InterruptedException, ExecutionException {
+      doDraw(graphics2D, node, snapshotParameters, options);
+   }
+
+   /**
+    * Last two parameters are optional, snapshotParameters only for drawing a Node.
+    *
+    * @param graphics2D
+    * @param sceneOrNode
+    * @param snapshotParameters
+    * @param options
+    * @throws InterruptedException
+    * @throws ExecutionException
+    */
+   private void doDraw(Graphics2D graphics2D, Object sceneOrNode, SnapshotParameters snapshotParameters, BufferedImageOp options) throws InterruptedException, ExecutionException {
+
+      RunnableFuture<Void> rf = new FutureTask<Void>(getFor(graphics2D, sceneOrNode, snapshotParameters, options));
 
       Platform.runLater(rf);
 
@@ -58,13 +104,16 @@ public class JavaFXToGraphics2D {
 
    }
 
-   private Callable<Void> getFor(Graphics2D graphics2D, Object sceneOrNode, BufferedImageOp options) {
+   private Callable<Void> getFor(Graphics2D graphics2D, Object sceneOrNode, SnapshotParameters snapshotParameters, BufferedImageOp options) {
       if (sceneOrNode instanceof Scene || sceneOrNode instanceof Node) {
+         if (sceneOrNode instanceof Node && snapshotParameters != null) {
+            throw new IllegalArgumentException(String.format("snapshotParameters Node", sceneOrNode));
+         }
          return new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                BufferedImage fromFXImage = SwingFXUtils.fromFXImage(
-                   sceneOrNode instanceof Scene ? ((Scene) sceneOrNode).snapshot(null) : ((Node) sceneOrNode).snapshot(null, null), null);
+                   sceneOrNode instanceof Scene ? ((Scene) sceneOrNode).snapshot(null) : ((Node) sceneOrNode).snapshot(snapshotParameters, null), null);
 
                graphics2D.drawImage(fromFXImage, null, 0, 0);
 
@@ -103,11 +152,27 @@ public class JavaFXToGraphics2D {
           bufferedImageType);
    }
 
-   public void transform(Scene scene, BufferedImage img) throws InterruptedException, ExecutionException {
+   /**
+    * draws a scene on the provided BufferedImage
+    *
+    * @param scene
+    * @param img
+    * @throws InterruptedException
+    * @throws ExecutionException
+    */
+   public void draw(Scene scene, BufferedImage img) throws InterruptedException, ExecutionException {
       draw(img.createGraphics(), scene);
    }
 
-   public void transform(Node node, BufferedImage img) throws InterruptedException, ExecutionException {
+   /**
+    * draws a node on the provided BufferedImage
+    *
+    * @param node
+    * @param img
+    * @throws InterruptedException
+    * @throws ExecutionException
+    */
+   public void draw(Node node, BufferedImage img) throws InterruptedException, ExecutionException {
       draw(img.createGraphics(), node);
    }
 }
