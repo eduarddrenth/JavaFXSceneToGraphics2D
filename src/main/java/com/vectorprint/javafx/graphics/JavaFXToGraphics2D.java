@@ -107,7 +107,7 @@ public class JavaFXToGraphics2D {
    private Callable<Void> getFor(Graphics2D graphics2D, Object sceneOrNode, SnapshotParameters snapshotParameters, BufferedImageOp options) {
       if (sceneOrNode instanceof Scene || sceneOrNode instanceof Node) {
          if (sceneOrNode instanceof Node && snapshotParameters != null) {
-            throw new IllegalArgumentException(String.format("snapshotParameters Node", sceneOrNode));
+            throw new IllegalArgumentException(String.format("snapshotParameters are for a Node %s is not a Node", sceneOrNode));
          }
          return new Callable<Void>() {
             @Override
